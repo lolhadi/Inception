@@ -33,7 +33,7 @@ if [ ! -e /var/www/html/wp-config.php ]; then
 			--title=Inception \
 			--admin_user=${WP_ADMIN} \
 			--admin_password=${WP_ADMIN_PASS} \
-			--admin_email=${WP_EMAIL} \
+			--admin_email=${WP_ADMIN_EMAIL} \
 			--skip-email
 
     wp user create \
@@ -41,28 +41,6 @@ if [ ! -e /var/www/html/wp-config.php ]; then
 		--user_pass="${WP_USER_PASSWORD}" \
 		--role=author \
 		--allow-root
-
-    # ========================================
-    # REDIS CONFIGURATION
-    # ========================================
-    echo "Configuring Redis cache..."
-
-    # Set Redis host
-    wp config set WP_REDIS_HOST redis --allow-root
-
-    # Set Redis port (--raw means don't quote the value)
-    wp config set WP_REDIS_PORT 6379 --allow-root --raw
-
-    # Enable WordPress caching
-    wp config set WP_CACHE true --allow-root --raw
-
-    # Install and activate Redis Object Cache pluggin
-    wp plugin install redis-cache --activate --allow-root
-
-    # Enable Redis cache
-    wp redis enable --allow-root
-
-    echo "Redis cache configured and enabled!"
 
 fi
 

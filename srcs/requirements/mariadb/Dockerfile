@@ -53,5 +53,5 @@ ENTRYPOINT [ "/usr/local/bin/script.sh" ]
 #    script.sh runs
 #         ↓
 #    MariaDB sets up database, users, passwords
-        ↓
+        # ↓
 #    MariaDB starts listening on port 3306

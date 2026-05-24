@@ -1,167 +1,167 @@
 services:
   mariadb:
-	# Docker will look for DockerFile inside that folder and build an image from it
-	build: ./requirements/mariadb
-	# Easier to debug and inspect i.e. docker logs mariadb
-	# Instead of Docker auto-generates names
-	container_name: mariadb
-	# Tags the built image as 'mariadb'
-	image: mariadb
-	# Ensures Docker never attempts to download an image from DockerHub if the build fails or is missing
-	# This guarantees that "forbidden to pull ready-made images" rule is strictly follow
-	pull_policy: never
-	# 'always': If the container stops, Docker automatically restarts it
-	restart: always
-	# Loads non-sensitive data from the .env file into the container
-	env_file: .env
-	# Loads sensitive data from secrets into the container
-	secrets:
-	  - db_user
-	  - db_root
-	# MariaDB must persist data (using Docker Volumes)
-	volumes:
-	  - db:/var/lib/mysql
-	# Connects this service to the 'inception' network so that MariaDB can be reachable by WordPress
-	networks:
-	  - inception
+    # Docker will look for DockerFile inside that folder and build an image from it
+    build: ./requirements/mariadb
+    # Easier to debug and inspect i.e. docker logs mariadb
+    # Instead of Docker auto-generates names
+    container_name: mariadb
+    # Tags the built image as 'mariadb'
+    image: mariadb
+    # Ensures Docker never attempts to download an image from DockerHub if the build fails or is missing
+    # This guarantees that "forbidden to pull ready-made images" rule is strictly follow
+    pull_policy: never
+    # 'always': If the container stops, Docker automatically restarts it
+    restart: always
+    # Loads non-sensitive data from the .env file into the container
+    env_file: .env
+    # Loads sensitive data from secrets into the container
+    secrets:
+      - db_user
+      - db_root
+    # MariaDB must persist data (using Docker Volumes)
+    volumes:
+      - db:/var/lib/mysql
+    # Connects this service to the 'inception' network so that MariaDB can be reachable by WordPress
+    networks:
+      - inception
 
   wordpress:
-	  build: ./requirements/wordpress
-	  container_name: wordpress
-	  image: wordpress
-	  pull_policy: never
-	  restart: always
-	  env_file: .env
-	  # web root where the web server serves files from inside the container
-	  volumes:
-		- wpf:/var/www/html
-	  networks:
-		- inception
-	  # WordPress needs the database to be ready before it can install itself
-	  # depends_on guarantees start order so MariaDB container starts first
-	  depends_on:
-		- mariadb
-		- redis
-	  secrets:
-		- wp_admin
-		- db_user
-		- wp_user
+    build: ./requirements/wordpress
+    container_name: wordpress
+    image: wordpress
+    pull_policy: never
+    restart: always
+    env_file: .env
+    # web root where the web server serves files from inside the container
+    volumes:
+      - wpf:/var/www/html
+    networks:
+      - inception
+    # WordPress needs the database to be ready before it can install itself
+    # depends_on guarantees start order so MariaDB container starts first
+    depends_on:
+      - mariadb
+    #   - redis
+    secrets:
+      - wp_admin
+      - db_user
+      - wp_user
 
   nginx:
-	build: ./requirements/nginx
-	container_name: nginx
-	image: nginx
-	pull_policy: never
-	restart: always
-	env_file: .env
-	# Requirements: "NGINX container must be the sole entry point... accessible only via port 443"
-	# Maps Host Port 443 -> Container Port 443
-	ports:
-	  - "443:443"
-	# web root where the web server serves files from inside the container
-	volumes:
-	  - wpf:/var/www/html
-	networks:
-	  - inception
-	# WordPress needs the database to be ready before it can install itself
-	# depends_on guarantees start order so MariaDB container starts first
-	depends_on:
-	  - wordpress
+    build: ./requirements/nginx
+    container_name: nginx
+    image: nginx
+    pull_policy: never
+    restart: always
+    env_file: .env
+    # Requirements: "NGINX container must be the sole entry point... accessible only via port 443"
+    # Maps Host Port 443 -> Container Port 443
+    ports:
+      - "443:443"
+    # web root where the web server serves files from inside the container
+    volumes:
+      - wpf:/var/www/html
+    networks:
+      - inception
+    # WordPress needs the database to be ready before it can install itself
+    # depends_on guarantees start order so MariaDB container starts first
+    depends_on:
+      - wordpress
 
-  redis:
-	build: ./requirements/bonus/redis
-	container_name: redis
-	image: redis
-	networks:
-	  - inception
-	env_file: .env
-	restart: always
+#   redis:
+#     build: ./requirements/bonus/redis
+#     container_name: redis
+#     image: redis
+#     networks:
+#       - inception
+#     env_file: .env
+#     restart: always
 
-  ftp:
-	build: ./requirements/bonus/ftp
-	container_name: ftp
-	image: ftp
-	ports:
-	  - "21:21"
-	  - "21000-21010:21000-21010"
-	volumes:
-	  - wpf:/var/www/html
-	env_file: .env
-	networks:
-	  - inception
-	secrets:
-	  - ftp_user
-	depends_on:
-	  - wordpress
-	restart: always
+#   ftp:
+#     build: ./requirements/bonus/ftp
+#     container_name: ftp
+#     image: ftp
+#     ports:
+#       - "21:21"
+#       - "21000-21010:21000-21010"
+#     volumes:
+#       - wpf:/var/www/html
+#     env_file: .env
+#     networks:
+#       - inception
+#     secrets:
+#       - ftp_user
+#     depends_on:
+#       - wordpress
+#     restart: always
 
-  website:
-	build: ./requirements/bonus/website
-	container_name: website
-	image: website
-	networks:
-	  - inception
-	restart: always
+#   website:
+#     build: ./requirements/bonus/website
+#     container_name: website
+#     image: website
+#     networks:
+#       - inception
+#     restart: always
 
-  portainer:
-	build: ./requirements/bonus/portainer
-	container_name: portainer
-	image: portainer
-	ports:
-	  - "9443:9443"
-	volumes:
-	  # Without this, Portainer cannot manage containers
-	  - /var/run/docker.sock:/var/run/docker.sock
-	  # Persists Portainer data (authentication info, stack definitions and etc.)
-	  - ptr:/data
-	networks:
-	  - inception
-	restart: always
+#   portainer:
+#     build: ./requirements/bonus/portainer
+#     container_name: portainer
+#     image: portainer
+#     ports:
+#       - "9443:9443"
+#     volumes:
+#       # Without this, Portainer cannot manage containers
+#       - /var/run/docker.sock:/var/run/docker.sock
+#       # Persists Portainer data (authentication info, stack definitions and etc.)
+#       - ptr:/data
+#     networks:
+#       - inception
+#     restart: always
 
-  adminer:
-	build: ./requirements/bonus/adminer
-	container_name: adminer
-	image: adminer
-	depends_on:
-	  - mariadb
-	networks:
-	  - inception
-	restart: always
+#   adminer:
+#     build: ./requirements/bonus/adminer
+#     container_name: adminer
+#     image: adminer
+#     depends_on:
+#       - mariadb
+#     networks:
+#       - inception
+#     restart: always
 
 volumes:
   # named Docker volume
   db:
-	# tells Docker to use the default local driver which is inside the VM
-	driver: local
-	driver_opts:
-	  type: none # not using a standard filesystem type
-	  o: bind # treats this as a bind mount internally, but still a named volume
-	  device: /home/muhabin-/data/mariadb # exact path on the host where data will be stored
+    # tells Docker to use the default local driver which is inside the VM
+    driver: local
+    driver_opts:
+      type: none # not using a standard filesystem type
+      o: bind # treats this as a bind mount internally, but still a named volume
+      device: /home/muhabin-/data/mariadb # exact path on the host where data will be stored
 
   wpf:
-	driver: local
-	driver_opts:
-	  type: none
-	  o: bind
-	  device: /home/muhabin-/data/wordpress
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/muhabin-/data/wordpress
 
   ptr:
-	driver: local
+    driver: local
 
 networks:
   inception:
-	# Creates an docker network on the host
-	# Containers can communicate internally using their service names
-	driver: bridge
+    # Creates an docker network on the host
+    # Containers can communicate internally using their service names
+    driver: bridge
 
 secrets:
   db_root:
-	file: ../secrets/db_root_password.txt
+    file: ../secrets/db_root_password.txt
   db_user:
-	file: ../secrets/db_password.txt
+    file: ../secrets/db_password.txt
   wp_admin:
-	file: ../secrets/wp_admin_password.txt
+    file: ../secrets/wp_admin_password.txt
   wp_user:
-	file: ../secrets/wp_user_password.txt
+    file: ../secrets/wp_user_password.txt
   ftp_user:
-	file: ../secrets/ftp_user_password.txt
+    file: ../secrets/ftp_user_password.txt
